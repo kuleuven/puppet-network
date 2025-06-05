@@ -40,7 +40,7 @@
 #   Provide an alternative custom template to use for configuration of:
 #   - On Debian: file fragments in /etc/network/interfaces
 #   - On RedHat: files /etc/sysconfig/network-scripts/ifcfg-${name}
-#   You can copy and adapt network/templates/interface/${::osfamily}.erb
+#   You can copy and adapt network/templates/interface/$facts['os']['family'].erb
 #
 # [*restart_all_nic*]
 #   Boolean. Default: true
@@ -49,7 +49,7 @@
 #   - If false, will only start/restart this specific interface
 #
 # [*reload_command*]
-#   String. Default: $::operatingsystem ? {'CumulusLinux' => 'ifreload -a',
+#   String. Default: $facts['os']['name'] ? {'CumulusLinux' => 'ifreload -a',
 #                                          default        => "ifdown ${interface}; ifup ${interface}",
 #                                         }
 #   Defines the command(s) that will be used to reload a nic when restart_all_nic
@@ -561,7 +561,7 @@ define network::interface (
   }
 
   # Redhat and Suse specific
-  if $::operatingsystem == 'SLES' and versioncmp($facts['os']['release'], '12') >= 0 {
+  if $facts['os']['name'] == 'SLES' and versioncmp($facts['os']['release'], '12') >= 0 {
     $bootproto_false = 'static'
   } else {
     $bootproto_false = 'none'
@@ -627,7 +627,7 @@ define network::interface (
 
   # Resources
   $real_reload_command = $reload_command ? {
-    undef => $::operatingsystem ? {
+    undef => $facts['os']['name'] ? {
         'CumulusLinux' => 'ifreload -a',
         'RedHat'       => $facts['os']['release']['major'] ? {
           '8'     => "/usr/bin/nmcli con reload ; /usr/bin/nmcli device reapply ${interface}",
@@ -669,7 +669,7 @@ define network::interface (
             group  => 'root',
           }
         }
-        if $::operatingsystem == 'CumulusLinux' {
+        if $facts['os']['name'] == 'CumulusLinux' {
           file { "interface-${name}":
             ensure  => $ensure,
             path    => "/etc/network/interfaces.d/${name}",
@@ -826,10 +826,10 @@ define network::interface (
         require => Exec["create ipaddr ${title}"],
         tag     => 'solaris',
       }
-      host { $::fqdn:
+      host { $facts['networking']['fqdn']:
         ensure       => present,
         ip           => $ipaddress,
-        host_aliases => [$::hostname],
+        host_aliases => [$facts['networking']['hostname']],
         require      => File["hostname iface ${title}"],
       }
       if ! defined(Service['svc:/network/physical:default']) {
@@ -845,7 +845,7 @@ define network::interface (
     }
 
     default: {
-      alert("${::operatingsystem} not supported. No changes done here.")
+      alert("${facts['os']['name']} not supported. No changes done here.")
     }
 
   }
