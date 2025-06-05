@@ -342,7 +342,7 @@ class network (
     create_resources('network::conf', $real_confs_hash)
   }
   # Configure default gateway (On RedHat). Also hostname is set.
-  if $::osfamily == 'RedHat'
+  if $facts['os']['family'] == 'RedHat'
   and ($::network::gateway
   or $::network::hostname) {
     file { '/etc/sysconfig/network':
@@ -365,7 +365,7 @@ class network (
   }
 
   # Configure hostname (On Debian)
-  if $::osfamily == 'Debian'
+  if $facts['os']['family'] == 'Debian'
   and $hostname {
     file { '/etc/hostname':
       ensure  => $config_file_ensure,
@@ -377,7 +377,7 @@ class network (
     }
   }
 
-  if $::osfamily == 'Suse' {
+  if $facts['os']['family'] == 'Suse' {
     if $hostname {
       file { '/etc/HOSTNAME':
         ensure  => $config_file_ensure,
@@ -394,7 +394,7 @@ class network (
     }
   }
 
-  if $::osfamily == 'Solaris' {
+  if $facts['os']['family'] == 'Solaris' {
     if $hostname {
       file { '/etc/nodename':
         ensure  => $config_file_ensure,
