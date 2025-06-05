@@ -272,14 +272,14 @@ define network::interface (
 
   Boolean $enable                = true,
   Enum['present','absent'] $ensure                = 'present',
-  String $template              = "network/interface/${::osfamily}.erb",
+  String $template              = "network/interface/${facts['os']['family']}.erb",
   Optional[Hash] $options               = undef,
   Optional[Hash] $options_extra_redhat  = undef,
   Optional[Hash] $options_extra_debian  = undef,
   Optional[Hash] $options_extra_suse    = undef,
   String $interface             = $name,
-  Boolean $restart_all_nic = $::osfamily ? {
-    'RedHat' => $::operatingsystemmajrelease ? {
+  Boolean $restart_all_nic = $facts['os']['family'] ? {
+    'RedHat' => $facts['os']['release']['major'] ? {
       '8'     => false,
       default => true,
     },
@@ -514,7 +514,7 @@ define network::interface (
 
   include ::network
 
-  if $::osfamily != 'RedHat' and ($type == 'InfiniBand' or $connected_mode) {
+  if $facts['os']['family'] != 'RedHat' and ($type == 'InfiniBand' or $connected_mode) {
     fail('InfiniBand parameters are supported only for RedHat family.')
   }
 
@@ -561,7 +561,7 @@ define network::interface (
   }
 
   # Redhat and Suse specific
-  if $::operatingsystem == 'SLES' and versioncmp($::operatingsystemrelease, '12') >= 0 {
+  if $::operatingsystem == 'SLES' and versioncmp($facts['os']['release'], '12') >= 0 {
     $bootproto_false = 'static'
   } else {
     $bootproto_false = 'none'
@@ -629,7 +629,7 @@ define network::interface (
   $real_reload_command = $reload_command ? {
     undef => $::operatingsystem ? {
         'CumulusLinux' => 'ifreload -a',
-        'RedHat'       => $::operatingsystemmajrelease ? {
+        'RedHat'       => $facts['os']['release']['major'] ? {
           '8'     => "/usr/bin/nmcli con reload ; /usr/bin/nmcli device reapply ${interface}",
           default => "ifdown ${interface} --force ; ifup ${interface}",
         },
@@ -648,11 +648,11 @@ define network::interface (
     $network_notify = $network::manage_config_file_notify
   }
 
-  case $::osfamily {
+  case $facts['os']['family'] {
 
     'Debian': {
       if $vlan_raw_device {
-        if versioncmp('9.0', $::operatingsystemrelease) >= 0
+        if versioncmp('9.0', $facts['os']['release']) >= 0
         and !defined(Package['vlan']) {
           package { 'vlan':
             ensure => 'present',
@@ -736,7 +736,7 @@ define network::interface (
     }
 
     'RedHat': {
-      if versioncmp($::operatingsystemmajrelease, '8') >= 0 {
+      if versioncmp($facts['os']['release']['major'], '8') >= 0 {
         if ! defined(Service['NetworkManager']) {
           service { 'NetworkManager':
             ensure => running,
@@ -785,7 +785,7 @@ define network::interface (
     }
 
     'Solaris': {
-      if $::operatingsystemrelease == '5.11' {
+      if $facts['os']['release'] == '5.11' {
         if ! defined(Service['svc:/network/physical:nwam']) {
           service { 'svc:/network/physical:nwam':
             ensure => stopped,
@@ -798,7 +798,7 @@ define network::interface (
           }
         }
       }
-      case $::operatingsystemmajrelease {
+      case $facts['os']['release']['major'] {
         '11','5': {
           if $enable_dhcp {
             $create_ip_command = "ipadm create-addr -T dhcp ${title}/dhcp"
