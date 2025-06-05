@@ -92,7 +92,7 @@ class network (
   Optional[Hash] $tables_hash               = undef,
   Optional[Hash] $confs_hash                = undef,
 
-  String $hostname_file_template   = "network/hostname-${::osfamily}.erb",
+  String $hostname_file_template   = "network/hostname-$facts['os']['family'].erb",
 
   # Parameter used only on RedHat family
   Optional[String] $gateway                   = undef,

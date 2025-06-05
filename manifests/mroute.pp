@@ -53,7 +53,7 @@
 #   - If false, will only start/restart this specific interface
 #
 # [*reload_command*]
-#   String. Default: $::operatingsystem ? {
+#   String. Default: $facts['os']['name'] ? {
 #    'CumulusLinux' => 'ifreload -a',
 #     default       => "ifdown ${interface}; ifup ${interface}",
 #   }
@@ -84,7 +84,7 @@ define network::mroute (
 ) {
   include ::network
   $real_reload_command = $reload_command ? {
-    undef => $::operatingsystem ? {
+    undef => $facts['os']['name'] ? {
         'CumulusLinux' => 'ifreload -a',
         'RedHat'       => $facts['os']['release']['major'] ? {
           '8'     => "/usr/bin/nmcli con reload ; /usr/bin/nmcli device reapply ${interface}",
@@ -135,7 +135,7 @@ define network::mroute (
 
   # TODO: add support for other distros
   if $facts['os']['family'] != 'RedHat' and $table {
-    notify {"table parameter in mroute has no effect on ${::osfamily}!":
+    notify { "table parameter in mroute has no effect on ${facts['os']['family']}!":
       loglevel => warning,
     }
   }

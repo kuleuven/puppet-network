@@ -40,7 +40,7 @@ class network::params {
     default  => undef,
   }
 
-  $package_name = $::operatingsystem ? {
+  $package_name = $facts['os']['name'] ? {
     'Ubuntu' => 'ifupdown',
     default  => undef,
   }
@@ -48,7 +48,7 @@ class network::params {
   case $facts['os']['family'] {
     'Debian','RedHat','Amazon','Suse', 'Solaris': { }
     default: {
-      fail("${::operatingsystem} not supported.")
+      fail("${facts['os']['name']} not supported.")
     }
   }
 }
