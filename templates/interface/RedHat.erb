@@ -84,7 +84,7 @@ NETMASK="<%= @netmask %>"
 BROADCAST="<%= @broadcast %>"
 <% end -%>
 <% if @gateway -%>
-<% if @ipaddress.kind_of?(Array) and @operatingsystemmajrelease.to_i > 6 -%>
+<% if @ipaddress.kind_of?(Array) and @os['release']['major'].to_i > 6 -%>
 GATEWAY1="<%= @gateway %>"
 <% end -%>
 GATEWAY="<%= @gateway %>"
